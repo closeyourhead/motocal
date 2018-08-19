@@ -58,6 +58,8 @@ $ npm run production-watch-dev
     - もしくは npm run watch-dev で監視する
 3. リリース時にproductionブランチにmergeしてからnpm run production-build
 
+※ スキル効果追加などで仕組みをいじるときは大体global_const.jsとglobal_logic.jsとtranslate.js。
+
 ### 武器テンプレート更新時
 1. 追加したい武器について、wikiの該当行をコピーし、txt_source/armData-ssr.txt の一番上に貼り付け
 2. arm_data_converter.py を実行

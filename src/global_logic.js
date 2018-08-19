@@ -382,7 +382,7 @@ module.exports.calcBasedOneSummon = function(summonind, prof, buff, totals) {
         var magnaKonshinCoeff = 1.0 + 0.01 * (totals[key]["magnaKonshin"] * totalSummon["magna"])
         var exCoeff = 1.0 + 0.01 * totals[key]["unknown"] * totalSummon["ranko"] + 0.01 * totals[key]["ex"]
         var exHaisuiCoeff = 1.0 + 0.01 * totals[key]["exHaisui"]
-        var normalCoeff = 1.0 + 0.01 * totals[key]["normal"] * totalSummon["zeus"] + 0.01 * totals[key]["normalSoka"] * totalSummon["zeus"] + 0.01 * totals[key]["bahaAT"] + 0.01 * totals[key]["normalOther"] + 0.01 * totals[key]["cosmosAT"] + 0.01 * totals[key]["omegaNormal"] + totalSummon["chara"] + buff["normal"] + totals[key]["normalBuff"]
+        var normalCoeff = 1.0 + 0.01 * totals[key]["normal"] * totalSummon["zeus"] + 0.01 * totals[key]["normalSoka"] * totalSummon["zeus"] + 0.01 * totals[key]["bahaAT"] + 0.01 * totals[key]["normalOther"] + 0.01 * totals[key]["omegaNormal"] + totalSummon["chara"] + buff["normal"] + totals[key]["normalBuff"]
             // 先制を通常攻刃へ加算
             normalCoeff += 0.01 * totals[key]["sensei"]
         var normalHaisuiCoeff = 1.0 + 0.01 * (totals[key]["normalHaisui"]) * totalSummon["zeus"] + 0.01 * (totals[key]["normalOtherHaisui"])
@@ -499,7 +499,8 @@ module.exports.calcBasedOneSummon = function(summonind, prof, buff, totals) {
         // 奥義ダメージのスキル分上限は30%?
         var ougiDamageLimitByExceed = (totals[key]["ougiDamageLimit"] > 0.30) ? 0.30 : totals[key]["ougiDamageLimit"]
         var ougiDamageLimitByMagna = (totals[key]["magnaOugiDamageLimit"] * totalSummon["magna"] > 0.30) ? 0.30 : totals[key]["magnaOugiDamageLimit"] * totalSummon["magna"]
-        var ougiDamageLimit = buff["ougiDamageLimit"] + totals[key]["ougiDamageLimitBuff"] + ougiDamageLimitByMagna + ougiDamageLimitByExceed
+        var ougiDamageLimitByNormal = (totals[key]["normalOugiDamageLimit"] * totalSummon["zeus"] > 0.30) ? 0.30 : totals[key]["normalOugiDamageLimit"] * totalSummon["zeus"]
+        var ougiDamageLimit = buff["ougiDamageLimit"] + totals[key]["ougiDamageLimitBuff"] + ougiDamageLimitByMagna + ougiDamageLimitByExceed + ougiDamageLimitByNormal
 
         // damageは追加ダメージなしの単攻撃ダメージ(減衰・技巧補正あり)
         var damage = module.exports.calcDamage(summedAttack, totalSkillCoeff, criticalRatio, prof.enemyDefense, additionalDamage, damageUP, damageLimit)
@@ -515,7 +516,7 @@ module.exports.calcBasedOneSummon = function(summonind, prof, buff, totals) {
 
         // 奥義ダメージ = 倍率 * (1 + 奥義ダメージバフ枠) * (1 + 奥義ダメージ上昇スキル枠)
         // 処理共通化のため係数部分(100% + deltaのdelta)のみ保存
-        var ougiDamageUP = (1.0 + totals[key]["ougiDamageBuff"]) * (1.0 + 0.01 * totals[key]["magnaOugiDamage"] * totalSummon["magna"] + 0.01 * totals[key]["normalOugiDamage"] * totalSummon["zeus"]) - 1.0
+        var ougiDamageUP = (1.0 + totals[key]["ougiDamageBuff"]) * (1.0 + 0.01 * totals[key]["magnaOugiDamage"] * totalSummon["magna"] + 0.01 * totals[key]["normalOugiDamage"] * totalSummon["zeus"] + 0.01 * totals[key]["cosmosAT"]) - 1.0
         var ougiDamage = module.exports.calcOugiDamage(summedAttack, totalSkillCoeff, criticalRatio, prof.enemyDefense, totals[key]["ougiRatio"], ougiDamageUP, damageUP, ougiDamageLimit)
 
         // チェインバーストダメージは「そのキャラと同じダメージを出すやつが chainNumber 人だけいたら」という仮定の元で計算する
@@ -1005,8 +1006,7 @@ module.exports.addSkilldataToTotals = function(totals, comb, arml, buff) {
                     } else if(stype == 'cosmos') {
                         // コスモス武器
                         if(skillname == 'cosmosAT' && totals[key]["type"] == "attack") {
-                            totals[key]["cosmosAT"] += comb[i] * 20.0;
-                            totals[key]["HPdebuff"] += comb[i] * 0.40
+                            totals[key]["cosmosAT"] = comb[i] * 20.0;
                         } else if(skillname == 'cosmosDF' && totals[key]["type"] == "defense") {
                             totals[key]["HPdebuff"] -= comb[i] * 0.10
                         } else if(skillname == 'cosmosBL' && totals[key]["type"] == "balance") {
@@ -1147,6 +1147,9 @@ module.exports.addSkilldataToTotals = function(totals, comb, arml, buff) {
                         } else if(stype == 'magnaHissatsu') {
                             totals[key]["magnaOugiDamage"] += comb[i] * skillAmounts["magnaHissatsu"][amount][slv - 1];
                             totals[key]["magnaOugiDamageLimit"] += 0.01 * comb[i] * skillAmounts["magnaHissatsu"][amount][slv - 1];
+                        } else if(stype == 'normalHissatsu') {
+                            totals[key]["normalOugiDamage"] += comb[i] * skillAmounts["normalHissatsu"][amount][slv - 1];
+                            totals[key]["normalOugiDamageLimit"] += 0.01 * comb[i] * skillAmounts["normalHissatsuLimit"][amount][slv - 1];
                         } else if(stype == 'exBoukun'){
                             totals[key]["HPdebuff"] += comb[i] * 0.07
                             totals[key]["ex"] += comb[i] * skillAmounts["ex"][amount][slv - 1];
@@ -1383,6 +1386,7 @@ module.exports.getInitialTotals = function(prof, chara, summon) {
             normalDamageLimit: 0,
             ougiDamageLimit: 0,
             magnaOugiDamageLimit: 0,
+            normalOugiDamageLimit: 0,
             additionalDamage: 0,
             ougiDebuff: 0,
             isConsideredInAverage: true,
@@ -1508,6 +1512,7 @@ module.exports.getInitialTotals = function(prof, chara, summon) {
                 normalDamageLimit: 0,
                 ougiDamageLimit: 0,
                 magnaOugiDamageLimit: 0,
+                normalOugiDamageLimit: 0,
                 additionalDamage: 0,
                 ougiDebuff: 0,
                 isConsideredInAverage: charaConsidered,
@@ -1638,6 +1643,7 @@ module.exports.initializeTotals = function(totals) {
         totals[key]["normalDamageLimit"] = 0;
         totals[key]["ougiDamageLimit"] = 0;
         totals[key]["magnaOugiDamageLimit"] = 0;
+        totals[key]["normalOugiDamageLimit"] = 0;
         totals[key]["additionalDamage"] = 0;
         totals[key]["ougiDebuff"] = 0;
         totals[key]["DAbuff"] = 0;

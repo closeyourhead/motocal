@@ -251,6 +251,15 @@ skillnamelist["normalHiouM"] = {
     u"憎悪の秘奥": "dark"
 }
 
+skillnamelist["normalHiouL"] = {
+    u"紅蓮の秘奥": "fire",
+    u"霧氷の秘奥": "water",
+    u"地烈の秘奥": "earth",
+    u"乱気の秘奥": "wind",
+    u"天光の秘奥": "light",
+    u"奈落の秘奥": "dark"
+}
+
 skillnamelist["normalJinkaiS"] = {
     u"火の刃界": "fire",
     u"水の刃界": "water",
@@ -349,6 +358,15 @@ skillnamelist["normalHiouS"] = {
     u"風の秘奥": "wind",
     u"光の秘奥": "light",
     u"闇の秘奥": "dark"
+}
+
+skillnamelist["normalHissatsuM"] = {
+    u"業火の必殺": "fire",
+    u"渦潮の必殺": "water",
+    u"大地の必殺": "earth",
+    u"竜巻の必殺": "wind",
+    u"雷電の必殺": "light",
+    u"憎悪の必殺": "dark"
 }
 
 # magna II

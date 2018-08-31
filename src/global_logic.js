@@ -497,10 +497,12 @@ module.exports.calcBasedOneSummon = function(summonind, prof, buff, totals) {
 
         // 奥義ダメージ上限UP = 全体バフ + 個人バフ + スキル + ダメージ上限UP分
         // 奥義ダメージのスキル分上限は30%?
-        var ougiDamageLimitByExceed = (totals[key]["ougiDamageLimit"] > 0.30) ? 0.30 : totals[key]["ougiDamageLimit"]
+        var ougiDamageLimitByAllDamage = (totals[key]["ougiDamageLimitByAllDamage"] > 0.21) ? 0.21 : totals[key]["ougiDamageLimitByAllDamage"]
+        var ougiDamageLimitByOmega = (totals[key]["ougiDamageLimitByOmega"] > 0.15) ? 0.15 : totals[key]["ougiDamageLimitByOmega"]
+        var ougiDamageLimitByExceed = (totals[key]["ougiDamageLimitByExceed"] > 0.30) ? 0.30 : totals[key]["ougiDamageLimitByExceed"]
         var ougiDamageLimitByMagna = (totals[key]["magnaOugiDamageLimit"] * totalSummon["magna"] > 0.30) ? 0.30 : totals[key]["magnaOugiDamageLimit"] * totalSummon["magna"]
         var ougiDamageLimitByNormal = (totals[key]["normalOugiDamageLimit"] * totalSummon["zeus"] > 0.30) ? 0.30 : totals[key]["normalOugiDamageLimit"] * totalSummon["zeus"]
-        var ougiDamageLimit = buff["ougiDamageLimit"] + totals[key]["ougiDamageLimitBuff"] + ougiDamageLimitByMagna + ougiDamageLimitByExceed + ougiDamageLimitByNormal
+        var ougiDamageLimit = buff["ougiDamageLimit"] + totals[key]["ougiDamageLimitBuff"] + ougiDamageLimitByMagna + ougiDamageLimitByExceed + ougiDamageLimitByNormal + ougiDamageLimitByAllDamage + ougiDamageLimitByOmega
 
         // damageは追加ダメージなしの単攻撃ダメージ(減衰・技巧補正あり)
         var damage = module.exports.calcDamage(summedAttack, totalSkillCoeff, criticalRatio, prof.enemyDefense, additionalDamage, damageUP, damageLimit)
@@ -1054,7 +1056,7 @@ module.exports.addSkilldataToTotals = function(totals, comb, arml, buff) {
                             if (gauphKeyType === "alpha") {
                                 totals[key]["normalDamageLimit"] += 0.1
                             } else if (gauphKeyType === "gamma") {
-                                totals[key]["ougiDamageLimit"] += 0.15
+                                totals[key]["ougiDamageLimitByOmega"] += 0.15
                             }
                             isOmegaIncluded[gauphKeyType] = true;
                         }
@@ -1175,11 +1177,11 @@ module.exports.addSkilldataToTotals = function(totals, comb, arml, buff) {
                         //! ダメージ上限アップ系は奥義と通常どちらにも効く
                         } else if (stype == 'normalDamageLimit') {
                             totals[key]["normalDamageLimit"] += comb[i] * skillAmounts["normalDamageLimit"][amount];
-                            totals[key]["ougiDamageLimit"] += comb[i] * skillAmounts["normalDamageLimit"][amount];
+                            totals[key]["ougiDamageLimitByAllDamage"] += comb[i] * skillAmounts["normalDamageLimit"][amount];
                         } else if (stype == 'ougiDamageLimit') {
                             totals[key]["ougiDamageLimit"] += comb[i] * skillAmounts["ougiDamageLimit"][amount];
                         } else if (stype == 'ougiDamageLimitExceed') {
-                            totals[key]["ougiDamageLimit"] += 0.01 * comb[i] * skillAmounts["ougiDamageLimitExceed"][amount][slv - 1];
+                            totals[key]["ougiDamageLimitByExceed"] += 0.01 * comb[i] * skillAmounts["ougiDamageLimitExceed"][amount][slv - 1];
                         //! 4凸武器スキル
                         } else if(stype == 'tsuranukiKiba'){
                             if(skillname == 'tsuranukiKibaMain'){
@@ -1199,7 +1201,7 @@ module.exports.addSkilldataToTotals = function(totals, comb, arml, buff) {
                             // 舞姫の演武: 通常攻刃大 + 上限アップ7%
                             totals[key]["normal"] += comb[i] * skillAmounts["normal"]["L"][slv - 1];
                             totals[key]["normalDamageLimit"] += comb[i] * skillAmounts["normalDamageLimit"]["M"];
-                            totals[key]["ougiDamageLimit"] += comb[i] * skillAmounts["normalDamageLimit"]["M"];
+                            totals[key]["ougiDamageLimitByAllDamage"] += comb[i] * skillAmounts["normalDamageLimit"]["M"];
                         // メインのみDATA追加拡張
                         } else if (stype == 'extendedDjeetaNormalDATA') {
                             if (key == 'Djeeta') {
@@ -1387,6 +1389,9 @@ module.exports.getInitialTotals = function(prof, chara, summon) {
             ougiDamageLimit: 0,
             magnaOugiDamageLimit: 0,
             normalOugiDamageLimit: 0,
+            ougiDamageLimitByAllDamage: 0,
+            ougiDamageLimitByExceed: 0,
+            ougiDamageLimitByOmega: 0,
             additionalDamage: 0,
             ougiDebuff: 0,
             isConsideredInAverage: true,
@@ -1513,6 +1518,9 @@ module.exports.getInitialTotals = function(prof, chara, summon) {
                 ougiDamageLimit: 0,
                 magnaOugiDamageLimit: 0,
                 normalOugiDamageLimit: 0,
+                ougiDamageLimitByAllDamage: 0,
+                ougiDamageLimitByExceed: 0,
+                ougiDamageLimitByOmega: 0,
                 additionalDamage: 0,
                 ougiDebuff: 0,
                 isConsideredInAverage: charaConsidered,
@@ -1644,6 +1652,9 @@ module.exports.initializeTotals = function(totals) {
         totals[key]["ougiDamageLimit"] = 0;
         totals[key]["magnaOugiDamageLimit"] = 0;
         totals[key]["normalOugiDamageLimit"] = 0;
+        totals[key]["ougiDamageLimitByAllDamage"] = 0;
+        totals[key]["ougiDamageLimitByOmega"] = 0;
+        totals[key]["ougiDamageLimitByExceed"] = 0;
         totals[key]["additionalDamage"] = 0;
         totals[key]["ougiDebuff"] = 0;
         totals[key]["DAbuff"] = 0;
